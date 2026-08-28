@@ -1,0 +1,22 @@
+{
+  "name": "GEMBU-KAI Club Sportiu Bonavista",
+  "short_name": "GEMBU-KAI",
+  "description": "Aplicación de gestión del club deportivo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#8B0000",
+  "theme_color": "#8B0000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "ruta/a/tu/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "ruta/a/tu/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

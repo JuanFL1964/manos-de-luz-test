@@ -202,7 +202,7 @@ function resetearBaseDatos() {
         else msg += '✔️ ' + contadores.clientes + ' clientes mantenidos\n';
         if (borrarCitas) msg += '🗑️ ' + contadores.citas + ' citas borradas\n';
         else msg += '✔️ ' + contadores.citas + ' citas mantenidas\n';
-        if (borrarCobros) msg += '🗑️ ' + contadores.cobros + ' cobros borrados\n';
+        if (borrarCobros) msg += '️ ' + contadores.cobros + ' cobros borrados\n';
         else msg += '✔️ ' + contadores.cobros + ' cobros mantenidos\n';
         msg += '\nLa página se recargará en 2 segundos.';
         alert(msg);
@@ -510,7 +510,7 @@ function mostrarFichaFidelidad(clienteId) {
     html += '<div class="progress-bar" style="margin-top:15px;"><div class="fill ' + (tieneDerecho ? 'completo' : '') + '" style="width:' + (tieneDerecho ? 100 : (puntos % 10) * 10) + '%"></div></div>';
     if (tieneDerecho) {
         html += '<div style="margin-top:15px;padding:15px;background:#fef3c7;border-radius:8px;text-align:center;">';
-        html += '<strong style="color:#92400e;font-size:1.1rem;">🎉 ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</strong>';
+        html += '<strong style="color:#92400e;font-size:1.1rem;"> ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</strong>';
         html += '<p style="margin:10px 0 0 0;font-size:14px;color:#64748b;">Al agendar la cita, marca la casilla "Es masaje GRATIS" y los puntos se resetearán a 0 automáticamente.</p>';
         html += '</div>';
     } else {
@@ -519,7 +519,7 @@ function mostrarFichaFidelidad(clienteId) {
         html += '</div>';
     }
     html += '<div id="editor-fidelidad" style="display:none;margin-top:20px;padding:15px;background:#fef3c7;border-radius:8px;">';
-    html += '<h4 style="margin-top:0;color:#92400e;">️ Editar puntos (solo para migración)</h4>';
+    html += '<h4 style="margin-top:0;color:#92400e;">✏️ Editar puntos (solo para migración)</h4>';
     html += '<p style="font-size:13px;color:#64748b;margin-bottom:10px;">Si el cliente ya tiene un masaje gratis pendiente, pon 10 puntos. El sistema lo detectará automáticamente.</p>';
     html += '<div style="margin-bottom:10px;">';
     html += '<label style="font-size:12px;color:#64748b;display:block;margin-bottom:5px;">Puntos acumulados:</label>';
@@ -551,7 +551,7 @@ function guardarPuntosEditados(clienteId) {
         db.collection('clientes').doc(clienteId).update({ puntosFidelidad: nuevosPuntos }).then(function() {
             alert('✅ Puntos actualizados correctamente');
             mostrarFichaFidelidad(clienteId);
-        }).catch(function(err) { alert(' Error al guardar: ' + err.message); });
+        }).catch(function(err) { alert('❌ Error al guardar: ' + err.message); });
     }
 }
 
@@ -581,7 +581,7 @@ function guardarCita(e) {
     var esGratis = document.getElementById('esGratis').checked;
     var clienteNombre = document.getElementById('c1').value;
     var puntos = getPuntosPorDuracion(duracion);
-    if (!masajista) { alert('❌ Selecciona una camilla'); return; }
+    if (!masajista) { alert(' Selecciona una camilla'); return; }
     if (verificarSolapamiento(fecha, hora, parseInt(duracion), masajista, editandoCita)) { 
         alert('❌ Ya existe una cita para ' + masajista + ' a esa hora'); 
         return; 
@@ -594,7 +594,7 @@ function guardarCita(e) {
         servicio: document.getElementById('sv1').value, 
         duracion: duracion, 
         precio: parseFloat(document.getElementById('p1').value) || 0, 
-        cobrado: esGratis ? true : false,
+        cobrado: false,
         esGratis: esGratis, 
         notas: document.getElementById('nt1').value 
     };
@@ -608,15 +608,25 @@ function guardarCita(e) {
             var cliente = clientes.find(function(c) { return c.nombre === clienteNombre; });
             if (cliente) {
                 if (esGratis) {
-                    db.collection('clientes').doc(cliente.id).update({puntosFidelidad: 0});
-                    mostrarEstado('✅ Cita guardada como GRATIS - Puntos reseteados a 0', 3000);
-                } else {
-                    var nuevosPuntos = (cliente.puntosFidelidad || 0) + puntos;
+                    // Restar 10 puntos en lugar de resetear a 0
+                    var nuevosPuntos = Math.max(0, (cliente.puntosFidelidad || 0) - 10);
                     db.collection('clientes').doc(cliente.id).update({puntosFidelidad: nuevosPuntos});
-                    if (nuevosPuntos >= 10 && (nuevosPuntos - puntos) < 10) {
-                        setTimeout(function() { alert('🎉 ¡' + cliente.nombre + ' ha alcanzado los 10 puntos!\n\nTIENE 1 MASAJE GRATIS DISPONIBLE'); }, 500);
+                    mostrarEstado('✅ Cita guardada como GRATIS - Puntos: ' + nuevosPuntos.toFixed(1), 3000);
+                } else {
+                    var puntosActuales = cliente.puntosFidelidad || 0;
+                    var nuevosPuntos = puntosActuales + puntos;
+                    
+                    // Detectar si acaba de alcanzar o superar 10 puntos
+                    var acabaDeAlcanzar = (puntosActuales < 10 && nuevosPuntos >= 10);
+                    
+                    db.collection('clientes').doc(cliente.id).update({puntosFidelidad: nuevosPuntos});
+                    
+                    if (acabaDeAlcanzar) {
+                        setTimeout(function() { 
+                            alert('🎉 ¡' + cliente.nombre + ' ha alcanzado los ' + nuevosPuntos.toFixed(1) + ' puntos!\n\nTIENE 1 MASAJE GRATIS DISPONIBLE'); 
+                        }, 500);
                     }
-                    mostrarEstado('✅ Cita guardada - +' + puntos + ' puntos', 2000);
+                    mostrarEstado('✅ Cita guardada - +' + puntos + ' puntos (Total: ' + nuevosPuntos.toFixed(1) + ')', 2000);
                 }
             }
         } else {
@@ -627,8 +637,8 @@ function guardarCita(e) {
 }
 
 function eliminarCliente(id) { if(confirm('¿Eliminar?')) { db.collection('clientes').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
-function eliminarCita(id) { if(confirm('¿Eliminar?')) { db.collection('citas').doc(id).delete(); mostrarEstado('️ Eliminado', 2000); } }
-function eliminarCobro(id) { if(confirm('¿Eliminar?')) { db.collection('cobros').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
+function eliminarCita(id) { if(confirm('¿Eliminar?')) { db.collection('citas').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
+function eliminarCobro(id) { if(confirm('¿Eliminar?')) { db.collection('cobros').doc(id).delete(); mostrarEstado('️ Eliminado', 2000); } }
 
 function editarCliente(id) {
     var c = clientes.find(function(x) { return x.id === id; });
@@ -771,12 +781,20 @@ function actualizarTablaClientes() {
     var selCobro = '<option value="">Cliente (opcional)...</option>';
     lista.forEach(function(c) {
         var puntos = c.puntosFidelidad || 0;
-        var restantes = 10 - (puntos % 10);
-        var tieneDerecho = puntos >= 10;
+        var masajesGratis = Math.floor(puntos / 10);
+        var puntosRestantes = puntos % 10;
+        var faltanParaGratis = (10 - puntosRestantes).toFixed(1);
         var badge = '';
-        if (tieneDerecho) badge = '<span class="badge-fidelidad listo">F GRATIS</span>';
-        else if (restantes <= 3) badge = '<span class="badge-fidelidad cerca">F ' + restantes.toFixed(1) + ' pts</span>';
-        else badge = '<span class="badge-fidelidad normal">F ' + puntos.toFixed(1) + ' pts</span>';
+
+        if (masajesGratis >= 2) {
+            badge = '<span class="badge-fidelidad listo">F ' + masajesGratis + ' GRATIS</span>';
+        } else if (masajesGratis === 1) {
+            badge = '<span class="badge-fidelidad listo">F GRATIS (+ ' + puntosRestantes.toFixed(1) + ' pts)</span>';
+        } else if (puntosRestantes >= 7) {
+            badge = '<span class="badge-fidelidad cerca">F ' + faltanParaGratis + ' pts</span>';
+        } else {
+            badge = '<span class="badge-fidelidad normal">F ' + faltanParaGratis + ' pts</span>';
+        }
         html1 += '<tr><td><strong>' + c.nombre + '</strong>' + badge + '</td><td>' + c.telefono + '</td><td>' + (c.email || '-') + '</td><td style="text-align:center;"><strong>' + puntos.toFixed(1) + '</strong></td><td><button class="btn-editar" onclick="editarCliente(\'' + c.id + '\')">Editar</button><button class="btn-editar" onclick="mostrarFichaFidelidad(\'' + c.id + '\')" style="background:#f59e0b;">F</button><button class="btn-eliminar" onclick="eliminarCliente(\'' + c.id + '\')">Eliminar</button></td></tr>';
         sel += '<option>' + c.nombre + '</option>';
         selCobro += '<option>' + c.nombre + '</option>';
@@ -1324,12 +1342,12 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div class="nav">
 <button id="b1" class="active">📊 Resumen</button>
 <button id="b2">📅 Agenda</button>
-<button id="b3">👥 Clientes</button>
+<button id="b3"> Clientes</button>
 <button id="b4">💰 Caja</button>
 <button id="b6">📜 Histórico</button>
-<button id="b7"> Tarifas</button>
-<button id="btn-exportar" style="float:right;background:#059669;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;"> Copia</button>
-<button id="btn-importar" style="float:right;background:#8b5cf6;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;"> Importar</button>
+<button id="b7">💵 Tarifas</button>
+<button id="btn-exportar" style="float:right;background:#059669;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">💾 Copia</button>
+<button id="btn-importar" style="float:right;background:#8b5cf6;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">📥 Importar</button>
 <button id="btn-reset" style="float:right;background:#ef4444;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">🗑️ Resetear</button>
 </div>
 <input type="file" id="input-importar" accept=".json" style="display:none;">
@@ -1370,7 +1388,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <h3>Nueva Cita</h3>
 <form id="f1">
 <input type="date" id="d1" required onchange="onFechaHoraChange()">
-<label><strong>🛏️ Camilla:</strong></label>
+<label><strong>️ Camilla:</strong></label>
 <select id="masajista" required onchange="onMasajistaChange()" style="background:#f0fdfa;font-weight:bold;">
     <option value="">Selecciona camilla...</option>
     <option value="Camilla1" selected>Camilla 1</option>
@@ -1386,8 +1404,8 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
     <div class="horario-leyenda">
         <div class="horario-leyenda-item"><div class="horario-leyenda-color libre"></div><span>Disponible</span></div>
         <div class="horario-leyenda-item"><div class="horario-leyenda-color seleccionado"></div><span>Seleccionado</span></div>
-        <div class="horario-leyenda-item"><div class="horario-leyenda-color limpieza"></div><span>🧹 Limpieza</span></div>
-        <div class="horario-leyenda-item"><div class="horario-leyenda-color ocupado"></div><span> Ocupado</span></div>
+        <div class="horario-leyenda-item"><div class="horario-leyenda-color limpieza"></div><span> Limpieza</span></div>
+        <div class="horario-leyenda-item"><div class="horario-leyenda-color ocupado"></div><span>🔒 Ocupado</span></div>
     </div>
 </div>
 <div id="alerta-solapamiento" class="alerta-solapamiento">
@@ -1450,7 +1468,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div id="s3" class="section">
 <h2>Clientes</h2>
 <div class="busqueda-container">
-    <label>🔍 Buscar:</label>
+    <label> Buscar:</label>
     <input type="text" id="busqueda-clientes" placeholder="Escribe nombre, apellido o teléfono..." oninput="filtrarClientes()">
     <span class="contador-resultados" id="contador-resultados"></span>
 </div>
@@ -1528,7 +1546,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div class="grafico-container"><canvas id="graficoMetodos"></canvas></div>
 </div>
 <div class="card">
-<h3> Listado de Masajes Realizados</h3>
+<h3>📋 Listado de Masajes Realizados</h3>
 <div class="busqueda-rapida">
     <input type="text" id="busqueda-masajes" placeholder="🔍 Buscar en el listado..." oninput="actualizarListadoMasajes()">
 </div>
@@ -1600,7 +1618,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div id="s5" class="section">
 <h2>Configuración de Tarifas</h2>
 <div class="card">
-<h3> Precios por Tipo de Masaje y Duración</h3>
+<h3>💵 Precios por Tipo de Masaje y Duración</h3>
 <table class="tabla-precios">
 <thead><tr><th>Tipo de Masaje</th><th>60 min</th><th>90 min</th><th>120 min</th></tr></thead>
 <tbody>

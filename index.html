@@ -181,7 +181,7 @@ function resetearBaseDatos() {
     
     var confirmarFinal = confirm(resumen);
     if (!confirmarFinal) {
-        alert(' Operación cancelada. No se ha borrado nada.');
+        alert('❌ Operación cancelada. No se ha borrado nada.');
         return;
     }
     
@@ -198,7 +198,7 @@ function resetearBaseDatos() {
     }
     batch.commit().then(function() {
         var msg = '✅ Base de datos actualizada:\n\n';
-        if (borrarClientes) msg += '🗑️ ' + contadores.clientes + ' clientes borrados\n';
+        if (borrarClientes) msg += '️ ' + contadores.clientes + ' clientes borrados\n';
         else msg += '✔️ ' + contadores.clientes + ' clientes mantenidos\n';
         if (borrarCitas) msg += '🗑️ ' + contadores.citas + ' citas borradas\n';
         else msg += '✔️ ' + contadores.citas + ' citas mantenidas\n';
@@ -510,8 +510,8 @@ function mostrarFichaFidelidad(clienteId) {
     html += '<div class="progress-bar" style="margin-top:15px;"><div class="fill ' + (tieneDerecho ? 'completo' : '') + '" style="width:' + (tieneDerecho ? 100 : (puntos % 10) * 10) + '%"></div></div>';
     if (tieneDerecho) {
         html += '<div style="margin-top:15px;padding:15px;background:#fef3c7;border-radius:8px;text-align:center;">';
-        html += '<strong style="color:#92400e;font-size:1.1rem;">🎉 ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</strong>';
-        html += '<p style="margin:10px 0 0 0;font-size:14px;color:#64748b;">Al agendar la cita, marca la casilla "Es masaje GRATIS" y los puntos se resetearán a 0 automáticamente.</p>';
+        html += '<strong style="color:#92400e;font-size:1.1rem;"> ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</strong>';
+        html += '<p style="margin:10px 0 0 0;font-size:14px;color:#64748b;">Al agendar la cita, marca la casilla "Es masaje GRATIS" y los puntos se restarán 10 automáticamente.</p>';
         html += '</div>';
     } else {
         html += '<div style="margin-top:15px;padding:15px;background:#f0fdfa;border-radius:8px;text-align:center;">';
@@ -631,64 +631,71 @@ function guardarCita(e) {
     cancelarEdicionCita();
 }
 
-function eliminarCliente(id) {
-    var cliente = clientes.find(function(c) { return c.id === id; });
+function eliminarCliente(id) { 
+    if(confirm('¿Eliminar cliente?')) { 
+        db.collection('clientes').doc(id).delete(); 
+        mostrarEstado('🗑️ Cliente eliminado', 2000); 
+    } 
+}
+
+function eliminarCita(id) {
+    var cita = citas.find(function(c) { return c.id === id; });
     
-    if (!cliente) {
-        alert('❌ No se encuentra el cliente');
+    if (!cita) {
+        alert('❌ No se encuentra la cita');
         return;
     }
     
-    // Contar citas del cliente
-    var citasCliente = citas.filter(function(c) { return c.cliente === cliente.nombre; });
-    var citasCobradas = citasCliente.filter(function(c) { return c.cobrado; });
-    var citasPendientes = citasCliente.filter(function(c) { return !c.cobrado; });
-    
     // Construir mensaje de advertencia DANGER
-    var mensaje = '🚨 DANGER - ELIMINACIÓN DE CLIENTE 🚨\n\n';
-    mensaje += '📋 DATOS DEL CLIENTE:\n';
-    mensaje += '• Nombre: ' + cliente.nombre + '\n';
-    mensaje += '• Teléfono: ' + cliente.telefono + '\n';
-    mensaje += '• Email: ' + (cliente.email || 'N/A') + '\n';
-    mensaje += '• Puntos fidelidad: ' + (cliente.puntosFidelidad || 0).toFixed(1) + '\n\n';
+    var mensaje = '🚨 DANGER - ELIMINACIÓN DE CITA 🚨\n\n';
+    mensaje += '📋 DATOS DE LA CITA:\n';
+    mensaje += '• Cliente: ' + cita.cliente + '\n';
+    mensaje += '• Fecha: ' + cita.fecha + '\n';
+    mensaje += '• Hora: ' + cita.hora + '\n';
+    mensaje += '• Servicio: ' + cita.servicio + '\n';
+    mensaje += '• Duración: ' + cita.duracion + ' min\n';
+    mensaje += '• Precio: ' + (cita.precio || 0).toFixed(2) + '€\n';
+    mensaje += '• Camilla: ' + (cita.masajista || 'No asignada') + '\n\n';
     
-    mensaje += '📊 RESUMEN DE CITAS:\n';
-    mensaje += '• Total citas: ' + citasCliente.length + '\n';
-    mensaje += '• Citas cobradas: ' + citasCobradas.length + '\n';
-    mensaje += '• Citas pendientes: ' + citasPendientes.length + '\n\n';
+    mensaje += '💰 ESTADO DE PAGO:\n';
+    if (cita.cobrado) {
+        mensaje += '⚠️ MARCADA COMO COBRADA\n';
+        mensaje += '• Si la eliminas, se perderá el registro del cobro\n';
+        mensaje += '• Asegúrate de que el cobro está registrado en Caja\n\n';
+    } else {
+        mensaje += ' NO MARCADA COMO COBRADA\n';
+        mensaje += '⚠️ PUEDE HABER SIDO COBRADA EN EFECTIVO\n';
+        mensaje += '• Si la eliminas, no quedará constancia del posible cobro\n';
+        mensaje += '• Verifica si se cobró antes de eliminar\n\n';
+    }
     
     mensaje += '⚠️ ADVERTENCIA IMPORTANTE:\n';
     mensaje += '• Esta acción quedará REGISTRADA DE FORMA PERMANENTE\n';
     mensaje += '• No se podrá deshacer ni borrar el registro\n';
-    mensaje += '• Se eliminará el cliente pero NO sus citas (quedarán huérfanas)\n';
-    mensaje += '• Esto puede afectar al historial y estadísticas\n\n';
+    mensaje += '• Se eliminará la cita pero quedará constancia en auditoría\n\n';
     
-    if (citasCobradas.length > 0) {
-        mensaje += '🚨 ESTE CLIENTE TIENE ' + citasCobradas.length + ' CITAS COBRADAS\n';
-        mensaje += '💰 Se recomienda NO eliminar si hay cobros registrados\n\n';
-    }
-    
-    mensaje += '¿Estás SEGURO de que quieres eliminar este cliente?\n\n';
+    mensaje += '¿Estás SEGURO de que quieres eliminar esta cita?\n\n';
     mensaje += '(SÍ = Eliminar | NO = Cancelar)';
     
     if (confirm(mensaje)) {
         // Crear registro de auditoría ANTES de eliminar
         var registroAuditoria = {
-            accion: 'eliminar_cliente',
+            accion: 'eliminar_cita',
             fecha: new Date().toISOString(),
-            clienteEliminado: {
-                id: cliente.id,
-                nombre: cliente.nombre,
-                telefono: cliente.telefono,
-                email: cliente.email || '',
-                puntosFidelidad: cliente.puntosFidelidad || 0,
-                notas: cliente.notas || ''
+            citaEliminada: {
+                id: cita.id,
+                cliente: cita.cliente,
+                fecha: cita.fecha,
+                hora: cita.hora,
+                servicio: cita.servicio,
+                duracion: cita.duracion,
+                precio: cita.precio || 0,
+                masajista: cita.masajista || '',
+                cobrado: cita.cobrado,
+                esGratis: cita.esGratis || false,
+                notas: cita.notas || ''
             },
-            estadisticas: {
-                totalCitas: citasCliente.length,
-                citasCobradas: citasCobradas.length,
-                citasPendientes: citasPendientes.length
-            },
+            estadoPago: cita.cobrado ? 'COBRADA' : 'NO COBRADA',
             motivo: prompt('Por favor, indica el MOTIVO de la eliminación (obligatorio):') || 'No especificado',
             usuario: 'Usuario local',
             timestamp: Date.now()
@@ -696,20 +703,20 @@ function eliminarCliente(id) {
         
         // Guardar en colección de auditoría
         db.collection('auditoria').add(registroAuditoria).then(function() {
-            db.collection('clientes').doc(id).delete().then(function() {
-                mostrarEstado('🗑️ Cliente eliminado (registrado en auditoría)', 3000);
-                console.log('✅ Cliente eliminado. Registro de auditoría:', registroAuditoria);
+            db.collection('citas').doc(id).delete().then(function() {
+                mostrarEstado('️ Cita eliminada (registrada en auditoría)', 3000);
+                console.log('✅ Cita eliminada. Registro de auditoría:', registroAuditoria);
             }).catch(function(err) {
-                alert(' Error al eliminar cliente: ' + err.message);
+                alert('❌ Error al eliminar cita: ' + err.message);
             });
         }).catch(function(err) {
             alert('❌ Error al crear registro de auditoría: ' + err.message);
-            db.collection('clientes').doc(id).delete();
+            // Aún así eliminamos la cita
+            db.collection('citas').doc(id).delete();
         });
     }
 }
 
-function eliminarCita(id) { if(confirm('¿Eliminar?')) { db.collection('citas').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
 function eliminarCobro(id) { if(confirm('¿Eliminar?')) { db.collection('cobros').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
 
 function editarCliente(id) {
@@ -889,7 +896,7 @@ function enviarWhatsAppRecordatorio(clienteId) {
         if (confirm('⚠️ ' + cliente.nombre + ' no tiene citas futuras programadas.\n\n¿Quieres enviar un mensaje genérico de bienvenida/recordatorio?')) {
             var telefono = cliente.telefono.replace(/\D/g, '');
             if (!telefono.startsWith('34')) telefono = '34' + telefono;
-            var mensaje = 'Hola ' + cliente.nombre + '! 👋\n\nTe recordamos que en Manos de Luz - Quiromasaje Tarragona estamos a tu disposición para tu próximo masaje. ¡Reserva tu cita cuando quieras! ‍♀️';
+            var mensaje = 'Hola ' + cliente.nombre + '! 👋\n\nTe recordamos que en Manos de Luz - Quiromasaje Tarragona estamos a tu disposición para tu próximo masaje. ¡Reserva tu cita cuando quieras! 💆‍♀️';
             var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
             window.open(url, '_blank');
         }
@@ -904,12 +911,12 @@ function enviarWhatsAppRecordatorio(clienteId) {
     var telefono = cliente.telefono.replace(/\D/g, '');
     if (!telefono.startsWith('34')) telefono = '34' + telefono;
     
-    var mensaje = 'Hola ' + cliente.nombre + '! \n\n';
+    var mensaje = 'Hola ' + cliente.nombre + '! 💆‍♀️\n\n';
     mensaje += 'Te recordamos tu próxima cita en Manos de Luz:\n\n';
     mensaje += '📅 ' + diaSemana + ', ' + proximaCita.fecha + '\n';
-    mensaje += ' ' + proximaCita.hora + 'h\n';
+    mensaje += '🕐 ' + proximaCita.hora + 'h\n';
     mensaje += '💆 ' + proximaCita.servicio + ' (' + proximaCita.duracion + ' min)\n';
-    mensaje += '🛏️ ' + (proximaCita.masajista === 'Camilla1' ? 'Camilla 1' : 'Camilla 2') + '\n\n';
+    mensaje += '️ ' + (proximaCita.masajista === 'Camilla1' ? 'Camilla 1' : 'Camilla 2') + '\n\n';
     mensaje += 'Si necesitas cambiar o cancelar la cita, avísanos con antelación. ¡Te esperamos! 💚';
     
     if (confirm('📱 Enviar recordatorio por WhatsApp a ' + cliente.nombre + '?\n\n' + mensaje)) {
@@ -1436,14 +1443,14 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
         </div>
         <div class="botones-banner">
             <button class="btn-instalar" onclick="instalarApp()">📲 Instalar Ahora</button>
-            <button class="btn-cerrar-banner" onclick="cerrarBannerInstalacion()"> Más tarde</button>
+            <button class="btn-cerrar-banner" onclick="cerrarBannerInstalacion()">✕ Más tarde</button>
         </div>
     </div>
 </div>
 
 <div class="header">
     <div class="header-izquierda">
-        <div class="header-sync">️ Sincronización activa</div>
+        <div class="header-sync">☁️ Sincronización activa</div>
     </div>
     <div class="header-centro">
         <img src="https://i.imgur.com/0PowleW.png" alt="Manos de Luz" class="logo">
@@ -1456,14 +1463,14 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </div>
 
 <div class="nav">
-<button id="b1" class="active"> Resumen</button>
+<button id="b1" class="active">📊 Resumen</button>
 <button id="b2">📅 Agenda</button>
 <button id="b3">👥 Clientes</button>
 <button id="b4">💰 Caja</button>
 <button id="b6">📜 Histórico</button>
 <button id="b7">💵 Tarifas</button>
-<button id="btn-exportar" style="float:right;background:#059669;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;"> Copia</button>
-<button id="btn-importar" style="float:right;background:#8b5cf6;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;"> Importar</button>
+<button id="btn-exportar" style="float:right;background:#059669;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">💾 Copia</button>
+<button id="btn-importar" style="float:right;background:#8b5cf6;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">📥 Importar</button>
 <button id="btn-reset" style="float:right;background:#ef4444;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">🗑️ Resetear</button>
 </div>
 <input type="file" id="input-importar" accept=".json" style="display:none;">
@@ -1515,7 +1522,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
        onclick="abrirSelectorHoras()">
 <p class="hora-hint">💡 Cada camilla tiene su propia disponibilidad. Las dos pueden atender a la misma hora.</p>
 <div id="visualizador-horarios" class="horario-visualizador" style="display:none;">
-    <h4>📅 Horarios disponibles para <span id="fecha-seleccionada"></span></h4>
+    <h4> Horarios disponibles para <span id="fecha-seleccionada"></span></h4>
     <div class="horario-grid" id="horario-grid"></div>
     <div class="horario-leyenda">
         <div class="horario-leyenda-item"><div class="horario-leyenda-color libre"></div><span>Disponible</span></div>
@@ -1584,7 +1591,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div id="s3" class="section">
 <h2>Clientes</h2>
 <div class="busqueda-container">
-    <label> Buscar:</label>
+    <label>🔍 Buscar:</label>
     <input type="text" id="busqueda-clientes" placeholder="Escribe nombre, apellido o teléfono..." oninput="filtrarClientes()">
     <span class="contador-resultados" id="contador-resultados"></span>
 </div>
@@ -1600,7 +1607,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </form>
 </div>
 <div id="ficha-fidelidad" class="card" style="display:none;">
-    <h3> Programa de Fidelización</h3>
+    <h3>🎁 Programa de Fidelización</h3>
     <div id="contenido-fidelidad"></div>
 </div>
 <div class="card">
@@ -1662,7 +1669,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div class="grafico-container"><canvas id="graficoMetodos"></canvas></div>
 </div>
 <div class="card">
-<h3> Listado de Masajes Realizados</h3>
+<h3>📋 Listado de Masajes Realizados</h3>
 <div class="busqueda-rapida">
     <input type="text" id="busqueda-masajes" placeholder="🔍 Buscar en el listado..." oninput="actualizarListadoMasajes()">
 </div>

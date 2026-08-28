@@ -23,7 +23,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
 var clientes = [];
 var citas = [];
 var cobros = [];
@@ -37,10 +36,8 @@ var metodoSeleccionado = null;
 var graficoIngresos = null;
 var graficoMetodos = null;
 var deferredPrompt = null;
-
 var CAMILLAS = ['Camilla1', 'Camilla2'];
 var COLORES_CAMILLAS = { 'Camilla1': '#ef4444', 'Camilla2': '#8b5cf6', 'Luz': '#ef4444', 'Laura': '#8b5cf6' };
-
 var tarifasPorDefecto = {
     'relajante_60': 50, 'relajante_90': 75, 'relajante_120': 100,
     'terapeutico_60': 50, 'terapeutico_90': 75, 'terapeutico_120': 100,
@@ -50,10 +47,8 @@ var tarifasPorDefecto = {
     'deportivo_60': 50, 'deportivo_90': 75, 'deportivo_120': 100,
     'rtp_60': 50, 'rtp_90': 75, 'rtp_120': 100
 };
-
 var TIEMPO_LIMPIEZA = 30;
 var TIEMPO_NOSHOW = 120;
-
 function getMasajistaTag(masajista, tamaño) {
     if (!masajista) return '';
     tamaño = tamaño || '12px';
@@ -65,7 +60,6 @@ function getMasajistaTag(masajista, tamaño) {
     else if (masajista === 'Camilla2') nombreMostrar = 'Camilla 2';
     return '<span style="background:' + color + ';color:white;padding:2px 8px;border-radius:4px;font-size:' + tamaño + ';font-weight:bold;white-space:nowrap;display:inline-block;"> ' + nombreMostrar + '</span>';
 }
-
 function iniciarSincronizacion() {
     db.collection('clientes').onSnapshot(snapshot => {
         clientes = [];
@@ -104,16 +98,13 @@ function iniciarSincronizacion() {
         cargarTarifasEnFormulario();
     });
 }
-
 var diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 var mesesAnio = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
 function actualizarReloj() {
     var ahora = new Date();
     document.getElementById('reloj-fecha').textContent = diasSemana[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + mesesAnio[ahora.getMonth()] + ' de ' + ahora.getFullYear();
     document.getElementById('reloj-hora').textContent = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0') + ':' + String(ahora.getSeconds()).padStart(2,'0');
 }
-
 function cambiar(n) {
     for(var i=1; i<=8; i++) {
         var s = document.getElementById('s'+i);
@@ -128,7 +119,6 @@ function cambiar(n) {
     if(n === 6) actualizarHistorico();
     if(n === 8) actualizarTablaAuditoria();
 }
-
 function mostrarBannerInstalacion() {
     var primeraVez = localStorage.getItem('primeraVisita');
     if (!primeraVez && deferredPrompt) {
@@ -158,17 +148,15 @@ window.addEventListener('appinstalled', function() {
     deferredPrompt = null;
     document.getElementById('banner-instalacion').style.display = 'none';
 });
-
 window.addEventListener('popstate', function(event) {
     history.pushState(null, null, window.location.href);
 });
 history.pushState(null, null, window.location.href);
-
 function resetearBaseDatos() {
-    var confirmarInicio = confirm('⚠️ ATENCIÓN: Vas a borrar datos de la base de datos.\n\n¿Deseas continuar con el proceso de selección?\n\n(SÍ = Continuar | NO = Cancelar)');
+    var confirmarInicio = confirm('️ ATENCIÓN: Vas a borrar datos de la base de datos.\n\n¿Deseas continuar con el proceso de selección?\n\n(SÍ = Continuar | NO = Cancelar)');
     if (!confirmarInicio) return;
     var borrarClientes = confirm('¿Borrar TODOS los CLIENTES?\n\n⚠️ Esto eliminará nombres, teléfonos, emails y puntos de fidelidad.\n\n(SÍ = Borrar clientes | NO = Mantener clientes)');
-    var borrarCitas = confirm('¿Borrar TODAS las CITAS?\n\n️ Esto eliminará el historial de citas pasadas y futuras.\n\n(SÍ = Borrar citas | NO = Mantener citas)');
+    var borrarCitas = confirm('¿Borrar TODAS las CITAS?\n\n⚠️ Esto eliminará el historial de citas pasadas y futuras.\n\n(SÍ = Borrar citas | NO = Mantener citas)');
     var borrarCobros = confirm('¿Borrar TODOS los COBROS?\n\n⚠️ Esto eliminará el historial de pagos y movimientos de caja.\n\n(SÍ = Borrar cobros | NO = Mantener cobros)');
     if (!borrarClientes && !borrarCitas && !borrarCobros) { alert('❌ No has seleccionado nada para borrar. Operación cancelada.'); return; }
     var resumen = '📋 RESUMEN DE LO QUE SE BORRARÁ:\n\n';
@@ -188,23 +176,22 @@ function resetearBaseDatos() {
     if (borrarCobros) { cobros.forEach(function(c) { batch.delete(db.collection('cobros').doc(c.id)); contadores.cobros++; }); }
     batch.commit().then(function() {
         var msg = '✅ Base de datos actualizada:\n\n';
-        if (borrarClientes) msg += '🗑️ ' + contadores.clientes + ' clientes borrados\n';
+        if (borrarClientes) msg += '️ ' + contadores.clientes + ' clientes borrados\n';
         else msg += '✔️ ' + contadores.clientes + ' clientes mantenidos\n';
         if (borrarCitas) msg += '🗑️ ' + contadores.citas + ' citas borradas\n';
         else msg += '✔️ ' + contadores.citas + ' citas mantenidas\n';
-        if (borrarCobros) msg += '️ ' + contadores.cobros + ' cobros borrados\n';
+        if (borrarCobros) msg += '🗑️ ' + contadores.cobros + ' cobros borrados\n';
         else msg += '✔️ ' + contadores.cobros + ' cobros mantenidos\n';
         msg += '\nLa página se recargará en 2 segundos.';
         alert(msg);
         setTimeout(function() { location.reload(); }, 2000);
-    }).catch(function(err) { alert('❌ Error al borrar: ' + err.message); });
+    }).catch(function(err) { alert(' Error al borrar: ' + err.message); });
 }
-
 function exportarDatos() {
     try {
         var d = { clientes: clientes, citas: citas, cobros: cobros, tarifas: tarifas, fecha: new Date().toISOString(), version: '2.0' };
         var jsonStr = JSON.stringify(d, null, 2);
-        if (jsonStr.length < 50) { alert('⚠️ No hay datos'); return; }
+        if (jsonStr.length < 50) { alert('️ No hay datos'); return; }
         var blob = new Blob([jsonStr], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -216,7 +203,6 @@ function exportarDatos() {
         mostrarEstado('💾 Copia descargada', 3000);
     } catch(err) { alert('Error: ' + err.message); }
 }
-
 function importarDatos(file) {
     var reader = new FileReader();
     reader.onload = function(event) {
@@ -246,7 +232,6 @@ function importarDatos(file) {
     };
     reader.readAsText(file, 'UTF-8');
 }
-
 function abrirSelectorHoras() {
     var fecha = document.getElementById('d1').value;
     var masajista = document.getElementById('masajista').value;
@@ -258,7 +243,6 @@ function abrirSelectorHoras() {
     mostrarVisualizadorHorarios(fecha, masajista);
     visualizador.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-
 function mostrarVisualizadorHorarios(fecha, masajista) {
     document.getElementById('fecha-seleccionada').textContent = fecha + ' - ' + masajista;
     var grid = document.getElementById('horario-grid');
@@ -280,7 +264,6 @@ function mostrarVisualizadorHorarios(fecha, masajista) {
         }
     }
 }
-
 function verificarEstadoHorario(fecha, horaInicio, masajista, citaIdExcluir) {
     if (!fecha || !horaInicio || !masajista) return 'libre';
     var partes = horaInicio.split(':');
@@ -297,7 +280,6 @@ function verificarEstadoHorario(fecha, horaInicio, masajista, citaIdExcluir) {
     }
     return 'libre';
 }
-
 function verificarSolapamiento(fecha, horaInicio, duracionMin, masajista, citaIdExcluir) {
     if (!fecha || !horaInicio || !masajista) return false;
     var partes = horaInicio.split(':');
@@ -315,7 +297,6 @@ function verificarSolapamiento(fecha, horaInicio, duracionMin, masajista, citaId
     }
     return false;
 }
-
 function seleccionarHoraDesdeVisualizador(hora) {
     var fecha = document.getElementById('d1').value;
     var masajista = document.getElementById('masajista').value;
@@ -327,7 +308,6 @@ function seleccionarHoraDesdeVisualizador(hora) {
     document.getElementById('visualizador-horarios').classList.remove('activo');
     onFechaHoraChange();
 }
-
 function onFechaHoraChange() {
     var fecha = document.getElementById('d1').value;
     var masajista = document.getElementById('masajista').value;
@@ -355,12 +335,10 @@ function onFechaHoraChange() {
         document.getElementById('aviso-fidelidad').style.display = 'none';
     }
 }
-
 function onMasajistaChange() {
     document.getElementById('t1').value = '';
     onFechaHoraChange();
 }
-
 function onClienteChange() {
     var clienteNombre = document.getElementById('c1').value;
     var selectServicio = document.getElementById('sv1');
@@ -374,7 +352,6 @@ function onClienteChange() {
         resetearDesdeDuracion();
     }
 }
-
 function onServicioChange() {
     var servicio = document.getElementById('sv1').value;
     if (servicio) {
@@ -386,9 +363,7 @@ function onServicioChange() {
         activarCamposFinales();
     } else resetearDesdeDuracion();
 }
-
 function onDuracionChange() { calcularYMostrarPrecio(); activarCamposFinales(); }
-
 function calcularYMostrarPrecio() {
     var servicio = document.getElementById('sv1').value;
     var duracion = document.querySelector('input[name="duracion"]:checked').value;
@@ -401,7 +376,6 @@ function calcularYMostrarPrecio() {
         document.getElementById('p1').value = precio.toFixed(2);
     }
 }
-
 function activarCamposFinales() {
     document.getElementById('p1').disabled = false;
     document.getElementById('label-gratis').classList.remove('deshabilitado');
@@ -417,7 +391,6 @@ function activarCamposFinales() {
         document.getElementById('btn-cita').textContent = 'Guardar Cita GRATIS';
     }
 }
-
 function resetearDesdeDuracion() {
     document.getElementById('duracion-container').classList.add('deshabilitado');
     document.getElementById('duracion-container').classList.remove('activo');
@@ -433,7 +406,6 @@ function resetearDesdeDuracion() {
     document.getElementById('btn-cita').textContent = 'Completa todos los campos';
     document.getElementById('info-precio').style.display = 'none';
 }
-
 function aplicarLogicaGratis() {
     var precioInput = document.getElementById('p1');
     var infoPrecio = document.getElementById('info-precio');
@@ -463,7 +435,6 @@ function aplicarLogicaGratis() {
         }
     }
 }
-
 function mostrarInfoFidelidad(clienteNombre) {
     var avisoDiv = document.getElementById('aviso-fidelidad');
     var cliente = clientes.find(function(c) { return c.nombre === clienteNombre; });
@@ -482,7 +453,6 @@ function mostrarInfoFidelidad(clienteNombre) {
     avisoDiv.innerHTML = html;
     avisoDiv.style.display = 'block';
 }
-
 function mostrarFichaFidelidad(clienteId) {
     var cliente = clientes.find(function(c) { return c.id === clienteId; });
     if (!cliente) return;
@@ -519,7 +489,6 @@ function mostrarFichaFidelidad(clienteId) {
     document.getElementById('contenido-fidelidad').innerHTML = html;
     document.getElementById('ficha-fidelidad').style.display = 'block';
 }
-
 function mostrarEditorFidelidad(clienteId) {
     var editor = document.getElementById('editor-fidelidad');
     if (editor) { editor.style.display = 'block'; editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
@@ -542,9 +511,7 @@ function guardarPuntosEditados(clienteId) {
         }).catch(function(err) { alert('❌ Error al guardar: ' + err.message); });
     }
 }
-
 function getPuntosPorDuracion(duracion) { return duracion == 60 ? 1 : (duracion == 90 ? 1.5 : 2); }
-
 function guardarCliente(e) {
     e.preventDefault();
     var datos = { 
@@ -559,7 +526,6 @@ function guardarCliente(e) {
     cancelarEdicionCliente();
     mostrarEstado('✅ Cliente guardado', 2000);
 }
-
 function guardarCita(e) {
     e.preventDefault();
     var fecha = document.getElementById('d1').value;
@@ -618,14 +584,12 @@ function guardarCita(e) {
     }
     cancelarEdicionCita();
 }
-
 function eliminarCliente(id) { 
     if(confirm('¿Eliminar cliente?')) { 
         db.collection('clientes').doc(id).delete(); 
         mostrarEstado('🗑️ Cliente eliminado', 2000); 
     } 
 }
-
 function eliminarCita(id) {
     var cita = citas.find(function(c) { return c.id === id; });
     if (!cita) { alert('❌ No se encuentra la cita'); return; }
@@ -640,12 +604,12 @@ function eliminarCita(id) {
     mensaje += '• Camilla: ' + (cita.masajista || 'No asignada') + '\n\n';
     mensaje += '💰 ESTADO DE PAGO:\n';
     if (cita.cobrado) {
-        mensaje += '⚠️ MARCADA COMO COBRADA\n';
+        mensaje += '️ MARCADA COMO COBRADA\n';
         mensaje += '• Si la eliminas, se perderá el registro del cobro\n';
         mensaje += '• Asegúrate de que el cobro está registrado en Caja\n\n';
     } else {
         mensaje += '⚠️ NO MARCADA COMO COBRADA\n';
-        mensaje += '⚠️ PUEDE HABER SIDO COBRADA EN EFECTIVO\n';
+        mensaje += '️ PUEDE HABER SIDO COBRADA EN EFECTIVO\n';
         mensaje += '• Si la eliminas, no quedará constancia del posible cobro\n';
         mensaje += '• Verifica si se cobró antes de eliminar\n\n';
     }
@@ -690,9 +654,7 @@ function eliminarCita(id) {
         });
     }
 }
-
 function eliminarCobro(id) { if(confirm('¿Eliminar?')) { db.collection('cobros').doc(id).delete(); mostrarEstado('🗑️ Eliminado', 2000); } }
-
 function editarCliente(id) {
     var c = clientes.find(function(x) { return x.id === id; });
     if (!c) return;
@@ -706,7 +668,6 @@ function editarCliente(id) {
     document.getElementById('card-cliente').classList.add('editando');
     mostrarFichaFidelidad(id);
 }
-
 function editarCita(id) {
     var c = citas.find(function(x) { return x.id === id; });
     if (!c) return;
@@ -738,7 +699,6 @@ function editarCita(id) {
     aplicarLogicaGratis();
     mostrarVisualizadorHorarios(c.fecha, c.masajista || 'Camilla1');
 }
-
 function cancelarEdicionCliente() { 
     editandoCliente = null; 
     document.getElementById('f2').reset(); 
@@ -767,7 +727,6 @@ function cancelarEdicionCita() {
     document.getElementById('visualizador-horarios').style.display = 'none'; 
     document.getElementById('alerta-solapamiento').classList.remove('visible'); 
 }
-
 function actualizar() {
     document.getElementById('n1').textContent = clientes.length;
     var hoy = new Date().toISOString().split('T')[0];
@@ -778,7 +737,7 @@ function actualizar() {
     var html2 = '';
     var sorted = citas.slice().sort(function(a, b) { return new Date(b.fecha + 'T' + b.hora) - new Date(a.fecha + 'T' + a.hora); });
     sorted.forEach(function(c) {
-        var estado = c.cobrado ? '<span style="background:#d1fae5;color:#065f46;padding:4px 8px;border-radius:4px;">✓ Cobrado</span>' : '<span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:4px;">⏳ Pendiente</span>';
+        var estado = c.cobrado ? '<span style="background:#d1fae5;color:#065f46;padding:4px 8px;border-radius:4px;">✓ Cobrado</span>' : '<span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:4px;"> Pendiente</span>';
         var btnCobrar = '';
         var esGratis = (c.esGratis === true || c.esGratis === 'true' || c.precio == 0);
         if (c.cobrado) { btnCobrar = ''; }
@@ -787,7 +746,7 @@ function actualizar() {
         var gratisTag = esGratis ? ' <span style="background:#f59e0b;color:white;padding:2px 6px;border-radius:4px;">GRATIS</span>' : '';
         var masajistaTag = getMasajistaTag(c.masajista, '12px');
         var claseFila = c.cobrado ? 'cobrado' : (esGratis ? 'gratis' : 'pendiente-pago');
-        html2 += '<tr class="' + claseFila + '"><td>' + c.fecha + '</td><td>' + c.hora + '</td><td>' + c.cliente + '</td><td>' + c.servicio + ' (' + c.duracion + ' min)' + gratisTag + '</td><td>' + masajistaTag + '</td><td>' + (c.precio ? c.precio.toFixed(2) + '€' : '-') + '</td><td>' + estado + '</td><td>' + btnCobrar + '<button class="btn-editar" onclick="editarCita(\'' + c.id + '\')">Editar</button><button class="btn-eliminar" onclick="eliminarCita(\'' + c.id + '\')">Eliminar</button><button class="btn-whatsapp-final" onclick="enviarWhatsAppCita(\'' + c.id + '\')" title="Enviar recordatorio por WhatsApp">WhatsApp</button></td></tr>';
+        html2 += '<tr class="' + claseFila + '"><td>' + c.fecha + '</td><td>' + c.hora + '</td><td>' + c.cliente + '</td><td>' + c.servicio + ' (' + c.duracion + ' min)' + gratisTag + '</td><td>' + masajistaTag + '</td><td>' + (c.precio ? c.precio.toFixed(2) + '€' : '-') + '</td><td>' + estado + '</td><td>' + btnCobrar + '<button class="btn-editar" onclick="editarCita(\'' + c.id + '\')">Editar</button><button class="btn-eliminar" onclick="eliminarCita(\'' + c.id + '\')">Eliminar</button><button class="btn-whatsapp-final" onclick="enviarWhatsAppCita(\'' + c.id + '\')" title="Enviar recordatorio por WhatsApp"></button></td></tr>';
     });
     document.getElementById('tb1').innerHTML = html2;
     var ahora = new Date();
@@ -819,7 +778,6 @@ function actualizar() {
     }).sort(function(a, b) { return new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora); })[0];
     document.getElementById('n3').textContent = prox ? (prox.cliente + ' (' + prox.fecha + ' ' + prox.hora + ' - ' + (prox.masajista || '?') + ')') : 'Ninguna';
 }
-
 function actualizarTablaClientes() {
     var lista = clientesFiltrados.length > 0 ? clientesFiltrados : clientes;
     var html1 = '';
@@ -842,7 +800,6 @@ function actualizarTablaClientes() {
     document.getElementById('tb2').innerHTML = html1 || '<tr><td colspan="5" style="text-align:center;">No hay clientes</td></tr>';
     document.getElementById('cb4').innerHTML = selCobro;
 }
-
 function enviarWhatsAppCliente(clienteId) {
     var cliente = clientes.find(function(c) { return c.id === clienteId; });
     if (!cliente) { alert('❌ No se encuentra el cliente'); return; }
@@ -851,58 +808,56 @@ function enviarWhatsAppCliente(clienteId) {
         return c.cliente === cliente.nombre && new Date(c.fecha + 'T' + c.hora) > ahora;
     }).sort(function(a, b) { return new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora); });
     if (citasFuturas.length === 0) {
-        if (confirm('️ ' + cliente.nombre + ' no tiene citas futuras programadas.\n\n¿Quieres enviar un mensaje genérico?')) {
+        if (confirm('⚠️ ' + cliente.nombre + ' no tiene citas futuras programadas.\n\n¿Quieres enviar un mensaje genérico?')) {
             var telefono = cliente.telefono.replace(/\D/g, '');
             if (!telefono.startsWith('34')) telefono = '34' + telefono;
-            var mensaje = 'Hola ' + cliente.nombre + '!\n\nTe recordamos que en Manos de Luz - Quiromasaje Tarragona estamos a tu disposición para tu próximo masaje. ¡Reserva tu cita cuando quieras!';
+            var mensaje = 'Hola ' + cliente.nombre + '!\n\nTe recordamos que en Manos de Luz - Quiromasaje Tarragona estamos a tu disposicion para tu proximo masaje. ¡Reserva tu cita cuando quieras!';
             var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
             window.open(url, '_blank');
         }
         return;
     }
     var proximaCita = citasFuturas[0];
-    var diasSemanaCorto = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    var diasSemanaCorto = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
     var fechaCita = new Date(proximaCita.fecha + 'T' + proximaCita.hora);
     var diaSemana = diasSemanaCorto[fechaCita.getDay()];
     var telefono = cliente.telefono.replace(/\D/g, '');
     if (!telefono.startsWith('34')) telefono = '34' + telefono;
     var mensaje = 'Hola ' + cliente.nombre + '!\n\n';
-    mensaje += 'Te recordamos tu próxima cita en Manos de Luz:\n\n';
-    mensaje += '📅 ' + diaSemana + ', ' + proximaCita.fecha + '\n';
-    mensaje += '🕐 ' + proximaCita.hora + 'h\n';
-    mensaje += '💆 ' + proximaCita.servicio + ' (' + proximaCita.duracion + ' min)\n\n';
-    mensaje += 'Si necesitas cambiar o cancelar la cita, avísanos con antelación. ¡Te esperamos!';
-    if (confirm(' Enviar recordatorio por WhatsApp a ' + cliente.nombre + '?\n\n' + mensaje)) {
+    mensaje += 'Te recordamos tu proxima cita en Manos de Luz:\n\n';
+    mensaje += 'Dia: ' + diaSemana + ', ' + proximaCita.fecha + '\n';
+    mensaje += 'Hora: ' + proximaCita.hora + 'h\n';
+    mensaje += 'Servicio: ' + proximaCita.servicio + ' (' + proximaCita.duracion + ' min)\n\n';
+    mensaje += 'Si necesitas cambiar o cancelar la cita, avisanos con antelacion. ¡Te esperamos!';
+    if (confirm('📱 Enviar recordatorio por WhatsApp a ' + cliente.nombre + '?\n\n' + mensaje)) {
         var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
         window.open(url, '_blank');
     }
 }
-
 function enviarWhatsAppCita(citaId) {
     var cita = citas.find(function(c) { return c.id === citaId; });
     if (!cita) { alert('❌ No se encuentra la cita'); return; }
     var cliente = clientes.find(function(c) { return c.nombre === cita.cliente; });
     if (!cliente || !cliente.telefono) {
-        alert('️ No se encuentra el teléfono del cliente "' + cita.cliente + '"\n\nAñade un teléfono en la ficha del cliente.');
+        alert('⚠️ No se encuentra el telefono del cliente "' + cita.cliente + '"\n\nAñade un telefono en la ficha del cliente.');
         return;
     }
-    var diasSemanaCorto = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    var diasSemanaCorto = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
     var fechaCita = new Date(cita.fecha + 'T' + cita.hora);
     var diaSemana = diasSemanaCorto[fechaCita.getDay()];
     var telefono = cliente.telefono.replace(/\D/g, '');
     if (!telefono.startsWith('34')) telefono = '34' + telefono;
     var mensaje = 'Hola ' + cita.cliente + '!\n\n';
     mensaje += 'Te recordamos tu cita en Manos de Luz:\n\n';
-    mensaje += '📅 ' + diaSemana + ', ' + cita.fecha + '\n';
-    mensaje += '🕐 ' + cita.hora + 'h\n';
-    mensaje += '💆 ' + cita.servicio + ' (' + cita.duracion + ' min)\n\n';
-    mensaje += 'Si necesitas cambiar o cancelar la cita, avísanos con antelación. ¡Te esperamos!';
-    if (confirm('📱 Enviar recordatorio por WhatsApp a ' + cita.cliente + '?\n\n' + mensaje)) {
+    mensaje += 'Dia: ' + diaSemana + ', ' + cita.fecha + '\n';
+    mensaje += 'Hora: ' + cita.hora + 'h\n';
+    mensaje += 'Servicio: ' + cita.servicio + ' (' + cita.duracion + ' min)\n\n';
+    mensaje += 'Si necesitas cambiar o cancelar la cita, avisanos con antelacion. ¡Te esperamos!';
+    if (confirm(' Enviar recordatorio por WhatsApp a ' + cita.cliente + '?\n\n' + mensaje)) {
         var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
         window.open(url, '_blank');
     }
 }
-
 function filtrarClientes() {
     var texto = document.getElementById('busqueda-clientes').value.toLowerCase().trim();
     if (!texto) clientesFiltrados = [];
@@ -910,7 +865,6 @@ function filtrarClientes() {
     document.getElementById('contador-resultados').textContent = (clientesFiltrados.length || clientes.length) + ' clientes';
     actualizarTablaClientes();
 }
-
 function actualizarBuscadorClientes() {
     var datalist = document.getElementById('lista-clientes');
     if (!datalist) return;
@@ -921,7 +875,6 @@ function actualizarBuscadorClientes() {
         datalist.appendChild(option);
     });
 }
-
 function actualizarCaja() {
     var hoy = new Date().toISOString().split('T')[0];
     var total = 0, ef = 0, tar = 0, biz = 0, tra = 0;
@@ -945,7 +898,6 @@ function actualizarCaja() {
     cobros.slice().sort(function(a, b) { return new Date(b.fecha) - new Date(a.fecha); }).forEach(function(c) { html += '<tr><td>' + c.fecha + '</td><td style="font-weight:bold;color:#10b981;">' + c.importe.toFixed(2) + '€</td><td>' + c.metodo + '</td><td>' + (c.cliente || '-') + '</td><td>' + (c.concepto || '-') + '</td><td><button class="btn-eliminar" onclick="eliminarCobro(\'' + c.id + '\')">Eliminar</button></td></tr>'; });
     document.getElementById('tb3').innerHTML = html || '<tr><td colspan="6" style="text-align:center;">No hay cobros</td></tr>';
 }
-
 function cobrarCita(id) {
     var c = citas.find(function(x) { return x.id === id; });
     if (!c) return;
@@ -956,9 +908,7 @@ function cobrarCita(id) {
     document.querySelectorAll('.metodo-pago').forEach(function(el) { el.classList.remove('selected'); });
     document.getElementById('modal-cobro').classList.add('visible');
 }
-
 function seleccionarMetodo(metodo, elemento) { metodoSeleccionado = metodo; document.querySelectorAll('.metodo-pago').forEach(function(el) { el.classList.remove('selected'); }); elemento.classList.add('selected'); }
-
 function confirmarCobro() {
     if (!cobroPendiente || !metodoSeleccionado) { alert('Selecciona método'); return; }
     var c = cobroPendiente;
@@ -969,9 +919,7 @@ function confirmarCobro() {
     actualizar();
     mostrarEstado('✅ Cobro registrado', 2000);
 }
-
 function cerrarModalCobro() { document.getElementById('modal-cobro').classList.remove('visible'); cobroPendiente = null; metodoSeleccionado = null; }
-
 function guardarTarifas() {
     var nuevosPrecios = {};
     var servicios = ['relajante', 'terapeutico', 'descontracturante', 'espalda', 'piernas', 'deportivo', 'rtp'];
@@ -980,15 +928,12 @@ function guardarTarifas() {
     db.collection('tarifas').doc('precios').set(nuevosPrecios);
     mostrarEstado('✅ Tarifas actualizadas', 2000);
 }
-
 function cargarTarifasEnFormulario() {
     var servicios = ['relajante', 'terapeutico', 'descontracturante', 'espalda', 'piernas', 'deportivo', 'rtp'];
     var duraciones = ['60', '90', '120'];
     servicios.forEach(function(serv) { duraciones.forEach(function(dur) { document.getElementById('precio_' + serv + '_' + dur).value = tarifas[serv + '_' + dur] || 0; }); });
 }
-
 function cargarTarifasPorDefecto() { if (confirm('¿Restaurar precios?')) { db.collection('tarifas').doc('precios').set(tarifasPorDefecto); mostrarEstado('✅ Precios restaurados', 2000); } }
-
 function actualizarListadoMasajes() {
     var fInicio = document.getElementById('filtro-fecha-inicio').value;
     var fFin = document.getElementById('filtro-fecha-fin').value;
@@ -1015,7 +960,6 @@ function actualizarListadoMasajes() {
     });
     document.getElementById('tb-listado-masajes').innerHTML = html || '<tr><td colspan="9" style="text-align:center;">Sin resultados</td></tr>';
 }
-
 function actualizarHistorico() {
     var hoy = new Date().toISOString().split('T')[0];
     var fInicio = document.getElementById('hist-filtro-inicio').value;
@@ -1065,13 +1009,11 @@ function actualizarHistorico() {
     document.getElementById('hist-noshows').textContent = noShows;
     document.getElementById('hist-contador').textContent = historicas.length + ' citas';
 }
-
 function cambiarGrafico() {
     document.getElementById('filtro-mes').style.display = document.getElementById('grafico-periodo').value === 'mes' ? 'flex' : 'none';
     document.getElementById('filtro-anio').style.display = document.getElementById('grafico-periodo').value === 'año' ? 'block' : 'none';
     actualizarGraficos();
 }
-
 function inicializarGraficos() {
     var anio = new Date().getFullYear();
     document.getElementById('grafico-anio').innerHTML = '';
@@ -1080,7 +1022,6 @@ function inicializarGraficos() {
     document.getElementById('grafico-mes').value = new Date().getMonth();
     actualizarGraficos();
 }
-
 function actualizarGraficos() {
     var periodo = document.getElementById('grafico-periodo').value;
     var ctx1 = document.getElementById('graficoIngresos').getContext('2d');
@@ -1118,7 +1059,6 @@ function actualizarGraficos() {
     }
     graficoMetodos = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Efectivo', 'Tarjeta', 'Bizum', 'Transferencia'], datasets: [{ data: mValores, backgroundColor: ['#1a5276', '#2980b9', '#8b5cf6', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Distribución por Método', font: { size: 16, weight: 'bold' }, padding: { bottom: 15 } } } } });
 }
-
 function actualizarTablaAuditoria() {
     var html = '';
     if (auditoria.length === 0) {
@@ -1148,9 +1088,7 @@ function actualizarTablaAuditoria() {
     document.getElementById('tb-auditoria').innerHTML = html;
     document.getElementById('contador-auditoria').textContent = auditoria.length + ' registros';
 }
-
 function mostrarEstado(mensaje, duracion) { var el = document.getElementById('estado'); el.textContent = mensaje; el.classList.add('visible'); setTimeout(function() { el.classList.remove('visible'); }, duracion); }
-
 window.onload = function() {
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
@@ -1181,7 +1119,7 @@ window.onload = function() {
             document.getElementById('cb1').valueAsDate = new Date();
             mostrarEstado('✅ Cobro registrado', 2000);
         }).catch(function(err) {
-            alert('❌ Error al registrar cobro: ' + err.message);
+            alert(' Error al registrar cobro: ' + err.message);
         });
     };
     document.getElementById('t1').addEventListener('click', function(e) { if (!this.disabled && document.getElementById('d1').value && document.getElementById('masajista').value) abrirSelectorHoras(); });
@@ -1244,22 +1182,23 @@ button.btn-whatsapp-final {
     background: #25D366; 
     color: white; 
     border: none; 
-    padding: 6px 14px; 
+    padding: 6px 10px; 
     border-radius: 4px; 
     cursor: pointer; 
     margin-left: 5px; 
-    font-size: 14px; 
-    font-weight: bold;
+    font-size: 16px; 
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    width: 36px;
+    height: 32px;
 }
 button.btn-whatsapp-final:hover { background: #128C7E; }
 button.btn-whatsapp-final::before {
     content: '';
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.726-6.015-1.96l-.42-.31-3.09 1.034 1.034-3.09-.31-.42A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>');
     background-size: contain;
     background-repeat: no-repeat;
@@ -1425,7 +1364,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 .banner-instalacion .btn-instalar:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .banner-instalacion .btn-cerrar-banner { background: transparent; color: white; border: 2px solid white; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
 .banner-instalacion .btn-cerrar-banner:hover { background: rgba(255,255,255,0.2); }
-
 @media (max-width: 767px) {
     body { font-size: 17px !important; }
     .nav { padding: 8px !important; }
@@ -1462,7 +1400,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </style>
 </head>
 <body>
-
 <div id="banner-instalacion" class="banner-instalacion">
     <div class="contenido-banner">
         <div class="texto-banner">
@@ -1470,15 +1407,14 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
             <p><strong>Importante:</strong> Instala la aplicación para que funcione como una app real, sin barra de navegador y sin riesgo de salir accidentalmente.</p>
         </div>
         <div class="botones-banner">
-            <button class="btn-instalar" onclick="instalarApp()"> Instalar Ahora</button>
+            <button class="btn-instalar" onclick="instalarApp()">📲 Instalar Ahora</button>
             <button class="btn-cerrar-banner" onclick="cerrarBannerInstalacion()">✕ Más tarde</button>
         </div>
     </div>
 </div>
-
 <div class="header">
     <div class="header-izquierda">
-        <div class="header-sync">☁️ Sincronización activa</div>
+        <div class="header-sync">️ Sincronización activa</div>
     </div>
     <div class="header-centro">
         <img src="https://i.imgur.com/0PowleW.png" alt="Manos de Luz" class="logo">
@@ -1489,23 +1425,20 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
         <div class="reloj-hora" id="reloj-hora"></div>
     </div>
 </div>
-
 <div class="nav">
 <button id="b1" class="active">📊 Resumen</button>
-<button id="b2">📅 Agenda</button>
+<button id="b2"> Agenda</button>
 <button id="b3">👥 Clientes</button>
 <button id="b4">💰 Caja</button>
 <button id="b6">📜 Histórico</button>
-<button id="b7"> Tarifas</button>
+<button id="b7">💵 Tarifas</button>
 <button id="b8">📋 Auditoría</button>
 <button id="btn-exportar" style="float:right;background:#059669;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">💾 Copia</button>
 <button id="btn-importar" style="float:right;background:#8b5cf6;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">📥 Importar</button>
 <button id="btn-reset" style="float:right;background:#ef4444;color:white;border-radius:4px;padding:8px 16px;margin-right:5px;">🗑️ Resetear</button>
 </div>
 <input type="file" id="input-importar" accept=".json" style="display:none;">
-
 <div class="main">
-
 <div id="s1" class="section active">
 <h2>Resumen del Día</h2>
 <div class="card">
@@ -1533,7 +1466,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div id="dc"></div>
 </div>
 </div>
-
 <div id="s2" class="section">
 <h2>Agenda</h2>
 <div class="card" id="card-cita">
@@ -1616,11 +1548,10 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </table>
 </div>
 </div>
-
 <div id="s3" class="section">
 <h2>Clientes</h2>
 <div class="busqueda-container">
-    <label> Buscar:</label>
+    <label>🔍 Buscar:</label>
     <input type="text" id="busqueda-clientes" placeholder="Escribe nombre, apellido o teléfono..." oninput="filtrarClientes()">
     <span class="contador-resultados" id="contador-resultados"></span>
 </div>
@@ -1646,7 +1577,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </table>
 </div>
 </div>
-
 <div id="s4" class="section">
 <h2>Control de Caja y Estadísticas</h2>
 <div class="stats-caja">
@@ -1730,7 +1660,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </table>
 </div>
 </div>
-
 <div id="s6" class="section">
 <h2>📜 Histórico de Citas</h2>
 <div class="stats-historico">
@@ -1766,7 +1695,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </table>
 </div>
 </div>
-
 <div id="s5" class="section">
 <h2>Configuración de Tarifas</h2>
 <div class="card">
@@ -1807,7 +1735,6 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <button class="btn" onclick="cargarTarifasPorDefecto()" style="background:#6b7280; margin-top:20px;">🔄 Restaurar precios por defecto</button>
 </div>
 </div>
-
 <div id="s8" class="section">
 <h2>📋 Registro de Auditoría</h2>
 <div class="card">
@@ -1833,11 +1760,8 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
     </table>
 </div>
 </div>
-
 </div>
-
 <div id="estado" class="estado-guardado">💾 Guardado en la nube</div>
-
 <div id="modal-cobro" class="modal-overlay">
     <div class="modal-content">
         <h3>💰 Registrar Cobro</h3>
@@ -1845,7 +1769,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
         <div class="importe-grande" id="modal-importe">0€</div>
         <p style="text-align:center;color:#64748b;margin-bottom:10px;"><strong>Selecciona método de pago:</strong></p>
         <div class="metodos-pago">
-            <div class="metodo-pago" onclick="seleccionarMetodo('Efectivo', this)"><span class="icono"></span><span class="nombre">Efectivo</span></div>
+            <div class="metodo-pago" onclick="seleccionarMetodo('Efectivo', this)"><span class="icono">💵</span><span class="nombre">Efectivo</span></div>
             <div class="metodo-pago" onclick="seleccionarMetodo('Tarjeta', this)"><span class="icono">💳</span><span class="nombre">Tarjeta</span></div>
             <div class="metodo-pago" onclick="seleccionarMetodo('Bizum', this)"><span class="icono">📱</span><span class="nombre">Bizum</span></div>
             <div class="metodo-pago" onclick="seleccionarMetodo('Transferencia', this)"><span class="icono">🏦</span><span class="nombre">Transferencia</span></div>
@@ -1856,6 +1780,5 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
         </div>
     </div>
 </div>
-
 </body>
 </html>

@@ -153,7 +153,7 @@ window.addEventListener('popstate', function(event) {
 });
 history.pushState(null, null, window.location.href);
 function resetearBaseDatos() {
-    var confirmarInicio = confirm('️ ATENCIÓN: Vas a borrar datos de la base de datos.\n\n¿Deseas continuar con el proceso de selección?\n\n(SÍ = Continuar | NO = Cancelar)');
+    var confirmarInicio = confirm('⚠️ ATENCIÓN: Vas a borrar datos de la base de datos.\n\n¿Deseas continuar con el proceso de selección?\n\n(SÍ = Continuar | NO = Cancelar)');
     if (!confirmarInicio) return;
     var borrarClientes = confirm('¿Borrar TODOS los CLIENTES?\n\n⚠️ Esto eliminará nombres, teléfonos, emails y puntos de fidelidad.\n\n(SÍ = Borrar clientes | NO = Mantener clientes)');
     var borrarCitas = confirm('¿Borrar TODAS las CITAS?\n\n⚠️ Esto eliminará el historial de citas pasadas y futuras.\n\n(SÍ = Borrar citas | NO = Mantener citas)');
@@ -166,7 +166,7 @@ function resetearBaseDatos() {
     else resumen += '❌ Citas: SE MANTIENEN (' + citas.length + ' registros)\n';
     if (borrarCobros) resumen += '✅ Cobros: ' + cobros.length + ' registros\n';
     else resumen += '❌ Cobros: SE MANTIENEN (' + cobros.length + ' registros)\n';
-    resumen += '\nLas TARIFAS siempre se mantienen.\n\n⚠️ ¿CONFIRMAR BORRADO?\n\n(SÍ = Borrar | NO = Cancelar)';
+    resumen += '\nLas TARIFAS siempre se mantienen.\n\n️ ¿CONFIRMAR BORRADO?\n\n(SÍ = Borrar | NO = Cancelar)';
     var confirmarFinal = confirm(resumen);
     if (!confirmarFinal) { alert('❌ Operación cancelada. No se ha borrado nada.'); return; }
     var batch = db.batch();
@@ -176,7 +176,7 @@ function resetearBaseDatos() {
     if (borrarCobros) { cobros.forEach(function(c) { batch.delete(db.collection('cobros').doc(c.id)); contadores.cobros++; }); }
     batch.commit().then(function() {
         var msg = '✅ Base de datos actualizada:\n\n';
-        if (borrarClientes) msg += '️ ' + contadores.clientes + ' clientes borrados\n';
+        if (borrarClientes) msg += '🗑️ ' + contadores.clientes + ' clientes borrados\n';
         else msg += '✔️ ' + contadores.clientes + ' clientes mantenidos\n';
         if (borrarCitas) msg += '🗑️ ' + contadores.citas + ' citas borradas\n';
         else msg += '✔️ ' + contadores.citas + ' citas mantenidas\n';
@@ -185,7 +185,7 @@ function resetearBaseDatos() {
         msg += '\nLa página se recargará en 2 segundos.';
         alert(msg);
         setTimeout(function() { location.reload(); }, 2000);
-    }).catch(function(err) { alert(' Error al borrar: ' + err.message); });
+    }).catch(function(err) { alert('❌ Error al borrar: ' + err.message); });
 }
 function exportarDatos() {
     try {
@@ -444,7 +444,7 @@ function mostrarInfoFidelidad(clienteNombre) {
     var tieneDerecho = puntos >= 10;
     var html = '<div class="alerta-regalo"><div class="icono">F</div><div class="texto"><strong>' + cliente.nombre + '</strong><br>Puntos: <strong>' + puntos.toFixed(1) + '</strong><br>';
     if (tieneDerecho) {
-        html += '<span style="color:#f59e0b;font-weight:bold;">🎉 ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</span>';
+        html += '<span style="color:#f59e0b;font-weight:bold;"> ¡TIENE 1 MASAJE GRATIS DISPONIBLE!</span>';
     } else {
         html += 'Faltan <strong>' + restantes.toFixed(1) + ' puntos</strong> para el siguiente gratis';
         html += '<div class="progress-bar"><div class="fill" style="width:' + ((puntos % 10) * 10) + '%"></div></div>';
@@ -535,7 +535,7 @@ function guardarCita(e) {
     var esGratis = document.getElementById('esGratis').checked;
     var clienteNombre = document.getElementById('c1').value;
     var puntos = getPuntosPorDuracion(duracion);
-    if (!masajista) { alert('⚠️ Selecciona una camilla'); return; }
+    if (!masajista) { alert('️ Selecciona una camilla'); return; }
     if (verificarSolapamiento(fecha, hora, parseInt(duracion), masajista, editandoCita)) { 
         alert('❌ Ya existe una cita para ' + masajista + ' a esa hora'); 
         return; 
@@ -604,12 +604,12 @@ function eliminarCita(id) {
     mensaje += '• Camilla: ' + (cita.masajista || 'No asignada') + '\n\n';
     mensaje += '💰 ESTADO DE PAGO:\n';
     if (cita.cobrado) {
-        mensaje += '️ MARCADA COMO COBRADA\n';
+        mensaje += '⚠️ MARCADA COMO COBRADA\n';
         mensaje += '• Si la eliminas, se perderá el registro del cobro\n';
         mensaje += '• Asegúrate de que el cobro está registrado en Caja\n\n';
     } else {
         mensaje += '⚠️ NO MARCADA COMO COBRADA\n';
-        mensaje += '️ PUEDE HABER SIDO COBRADA EN EFECTIVO\n';
+        mensaje += '⚠️ PUEDE HABER SIDO COBRADA EN EFECTIVO\n';
         mensaje += '• Si la eliminas, no quedará constancia del posible cobro\n';
         mensaje += '• Verifica si se cobró antes de eliminar\n\n';
     }
@@ -737,7 +737,7 @@ function actualizar() {
     var html2 = '';
     var sorted = citas.slice().sort(function(a, b) { return new Date(b.fecha + 'T' + b.hora) - new Date(a.fecha + 'T' + a.hora); });
     sorted.forEach(function(c) {
-        var estado = c.cobrado ? '<span style="background:#d1fae5;color:#065f46;padding:4px 8px;border-radius:4px;">✓ Cobrado</span>' : '<span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:4px;"> Pendiente</span>';
+        var estado = c.cobrado ? '<span style="background:#d1fae5;color:#065f46;padding:4px 8px;border-radius:4px;">✓ Cobrado</span>' : '<span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:4px;">⏳ Pendiente</span>';
         var btnCobrar = '';
         var esGratis = (c.esGratis === true || c.esGratis === 'true' || c.precio == 0);
         if (c.cobrado) { btnCobrar = ''; }
@@ -812,7 +812,7 @@ function enviarWhatsAppCliente(clienteId) {
             var telefono = cliente.telefono.replace(/\D/g, '');
             if (!telefono.startsWith('34')) telefono = '34' + telefono;
             var mensaje = 'Hola ' + cliente.nombre + '!\n\nTe recordamos que en Manos de Luz - Quiromasaje Tarragona estamos a tu disposicion para tu proximo masaje. ¡Reserva tu cita cuando quieras!';
-            var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
+            var url = 'https://api.whatsapp.com/send?phone=' + telefono + '&text=' + encodeURIComponent(mensaje);
             window.open(url, '_blank');
         }
         return;
@@ -830,7 +830,7 @@ function enviarWhatsAppCliente(clienteId) {
     mensaje += 'Servicio: ' + proximaCita.servicio + ' (' + proximaCita.duracion + ' min)\n\n';
     mensaje += 'Si necesitas cambiar o cancelar la cita, avisanos con antelacion. ¡Te esperamos!';
     if (confirm('📱 Enviar recordatorio por WhatsApp a ' + cliente.nombre + '?\n\n' + mensaje)) {
-        var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
+        var url = 'https://api.whatsapp.com/send?phone=' + telefono + '&text=' + encodeURIComponent(mensaje);
         window.open(url, '_blank');
     }
 }
@@ -854,7 +854,7 @@ function enviarWhatsAppCita(citaId) {
     mensaje += 'Servicio: ' + cita.servicio + ' (' + cita.duracion + ' min)\n\n';
     mensaje += 'Si necesitas cambiar o cancelar la cita, avisanos con antelacion. ¡Te esperamos!';
     if (confirm(' Enviar recordatorio por WhatsApp a ' + cita.cliente + '?\n\n' + mensaje)) {
-        var url = 'https://wa.me/' + telefono + '?text=' + encodeURIComponent(mensaje);
+        var url = 'https://api.whatsapp.com/send?phone=' + telefono + '&text=' + encodeURIComponent(mensaje);
         window.open(url, '_blank');
     }
 }
@@ -993,7 +993,7 @@ function actualizarHistorico() {
     historicas.forEach(function(c) {
         var cobro = cobros.find(function(cb) { return cb.cliente === c.cliente && cb.concepto.includes(c.servicio) && cb.fecha === c.fecha; });
         var metodo = cobro ? cobro.metodo : '-';
-        var estado = c.cobrado ? '<span style="color:#10b981;font-weight:bold;">✓ Cobrado</span>' : '<span style="color:#ef4444;font-weight:bold;">✗ No cobrado</span>';
+        var estado = c.cobrado ? '<span style="color:#10b981;font-weight:bold;">✓ Cobrado</span>' : '<span style="color:#ef4444;font-weight:bold;"> No cobrado</span>';
         if (c.cobrado) totalHistorico += c.precio || 0;
         var partes = c.hora.split(':');
         var minCita = parseInt(partes[0]) * 60 + parseInt(partes[1]);
@@ -1414,7 +1414,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </div>
 <div class="header">
     <div class="header-izquierda">
-        <div class="header-sync">️ Sincronización activa</div>
+        <div class="header-sync">☁️ Sincronización activa</div>
     </div>
     <div class="header-centro">
         <img src="https://i.imgur.com/0PowleW.png" alt="Manos de Luz" class="logo">
@@ -1427,9 +1427,9 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 </div>
 <div class="nav">
 <button id="b1" class="active">📊 Resumen</button>
-<button id="b2"> Agenda</button>
+<button id="b2">📅 Agenda</button>
 <button id="b3">👥 Clientes</button>
-<button id="b4">💰 Caja</button>
+<button id="b4"> Caja</button>
 <button id="b6">📜 Histórico</button>
 <button id="b7">💵 Tarifas</button>
 <button id="b8">📋 Auditoría</button>
@@ -1472,18 +1472,18 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <h3>Nueva Cita</h3>
 <form id="f1">
 <input type="date" id="d1" required onchange="onFechaHoraChange()">
-<label><strong>🛏️ Camilla:</strong></label>
+<label><strong>️ Camilla:</strong></label>
 <select id="masajista" required onchange="onMasajistaChange()" style="background:#f0fdfa;font-weight:bold;">
     <option value="">Selecciona camilla...</option>
     <option value="Camilla1" selected>Camilla 1</option>
     <option value="Camilla2">Camilla 2</option>
 </select>
-<input type="text" id="t1" readonly placeholder="👇 Primero selecciona fecha y camilla" 
+<input type="text" id="t1" readonly placeholder=" Primero selecciona fecha y camilla" 
        style="cursor: pointer; background-color: #f0fdfa; text-align: center; font-weight: bold;" 
        onclick="abrirSelectorHoras()">
 <p class="hora-hint">💡 Cada camilla tiene su propia disponibilidad. Las dos pueden atender a la misma hora.</p>
 <div id="visualizador-horarios" class="horario-visualizador" style="display:none;">
-    <h4>📅 Horarios disponibles para <span id="fecha-seleccionada"></span></h4>
+    <h4> Horarios disponibles para <span id="fecha-seleccionada"></span></h4>
     <div class="horario-grid" id="horario-grid"></div>
     <div class="horario-leyenda">
         <div class="horario-leyenda-item"><div class="horario-leyenda-color libre"></div><span>Disponible</span></div>
@@ -1628,7 +1628,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div class="grafico-container"><canvas id="graficoMetodos"></canvas></div>
 </div>
 <div class="card">
-<h3> Listado de Masajes Realizados</h3>
+<h3>📋 Listado de Masajes Realizados</h3>
 <div class="busqueda-rapida">
     <input type="text" id="busqueda-masajes" placeholder="🔍 Buscar en el listado..." oninput="actualizarListadoMasajes()">
 </div>
@@ -1698,7 +1698,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <div id="s5" class="section">
 <h2>Configuración de Tarifas</h2>
 <div class="card">
-<h3>💵 Precios por Tipo de Masaje y Duración</h3>
+<h3> Precios por Tipo de Masaje y Duración</h3>
 <table class="tabla-precios">
 <thead><tr><th>Tipo de Masaje</th><th>60 min</th><th>90 min</th><th>120 min</th></tr></thead>
 <tbody>
@@ -1739,7 +1739,7 @@ button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
 <h2>📋 Registro de Auditoría</h2>
 <div class="card">
     <div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;border-radius:8px;margin-bottom:20px;">
-        <strong>⚠️ Información importante:</strong>
+        <strong>️ Información importante:</strong>
         <p style="margin:10px 0 0 0;color:#64748b;">Aquí se registran <strong>TODAS las eliminaciones de citas</strong> de forma permanente. Este registro no se puede borrar desde la aplicación y sirve para tener constancia de cualquier eliminación, especialmente si la cita estaba cobrada.</p>
     </div>
     <div style="margin-bottom:15px;">
